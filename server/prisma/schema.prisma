@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  HOLDER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum AccountType {
+  BANK
+  CASH
+  CREDIT
+  INVESTMENT
+  OTHER
+}
+
+enum AccountStatus {
+  ACTIVE
+  CLOSED
+}
+
+model User {
+  id           String      @id @default(cuid())
+  name         String      @db.VarChar(100)
+  email        String      @unique @db.VarChar(254)
+  passwordHash String      @db.VarChar(255)
+  role         UserRole    @default(HOLDER)
+  status       UserStatus  @default(ACTIVE)
+  mustChangePassword Boolean @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  accounts     Account[]
+  auditLogs    AuditLog[]  @relation("AuditActor")
+}
+
+model Account {
+  id           String        @id @default(cuid())
+  ownerId      String
+  name         String        @db.VarChar(100)
+  type         AccountType
+  institution  String?       @db.VarChar(100)
+  currency     String        @default("USD") @db.Char(3)
+  balance      Decimal       @default(0) @db.Decimal(19, 4)
+  status       AccountStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  owner        User          @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+
+  @@index([ownerId, status])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String   @db.VarChar(80)
+  targetType String   @db.VarChar(50)
+  targetId   String?  @db.VarChar(100)
+  metadata   Json?
+  ipAddress  String?  @db.VarChar(45)
+  createdAt  DateTime @default(now())
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId, createdAt])
+}

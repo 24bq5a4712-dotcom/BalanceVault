@@ -1,0 +1,23 @@
+{
+  "name": "balancevault",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n client,server -c cyan,green \"npm run dev --workspace client\" \"npm run dev --workspace server\"",
+    "build": "npm run build --workspace client",
+    "start": "npm run start --workspace server",
+    "db:generate": "npm run db:generate --workspace server",
+    "db:migrate": "npm run db:migrate --workspace server",
+    "db:deploy": "npm run db:deploy --workspace server",
+    "admin:bootstrap": "npm run admin:bootstrap --workspace server",
+    "test": "npm test --workspace server",
+    "test:integration": "npm run test:integration --workspace server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
