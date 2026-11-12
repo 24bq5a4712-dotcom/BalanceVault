@@ -252,3 +252,15 @@ completeness until those exact ten requirements are available for mapping.
 - The challenge event page lists an editing deadline of 2026-11-10. This
   follow-up is local work after that deadline; no public push or deployment was
   performed.
+## Later production verification — 2026-11-12
+
+- **Deployment:** The frontend and API are deployed on Render. The frontend is available at `https://balancevault-wqxw.onrender.com` and the API at `https://balancevault-api-07ty.onrender.com`.
+- **Database migrations:** Render logs confirm that the initial Prisma migration was applied successfully to the production PostgreSQL database. A later startup reported no pending migrations.
+- **Health check:** `GET https://balancevault-wqxw.onrender.com/api/health` returned `{"status":"ok"}`, confirming that the frontend rewrite reaches the API health endpoint.
+- **Administrator workflow:** A production administrator was bootstrapped using the one-time bootstrap command. Admin login and the admin dashboard were verified in the browser.
+- **Holder workflow:** The admin onboarded a test holder. The holder logged in and successfully created, edited, and closed a test account.
+- **Audit trail:** The admin audit view displayed `admin.user.created`, `auth.login`, `auth.password.changed`, `account.created`, `account.updated`, `account.closed`, and `auth.logout` events.
+- **Automated tests:** `npm test` passed: backend 6/6 and frontend 3/3. `npm run build` completed successfully.
+- **Git history:** The verified deployment commit is `1a4967f` (`Fix production session cookies behind Render proxy`), on `master` and `origin/master`.
+- **Limitations:** The test account used metadata only. No deposits, withdrawals, transfers, bank integration, or real-money movement were implemented or verified. The exact participant-gated challenge acceptance criteria remain unavailable, so those requirements cannot be marked as satisfied based on assumptions.
+- **Earlier status note:** Statements in the preceding follow-up about no production admin login, no push, and no deployment describe the earlier verification point. They were superseded by the production checks recorded above.
