@@ -226,9 +226,10 @@ completeness until those exact ten requirements are available for mapping.
   transaction history therefore remain **unverified challenge requirements**;
   no financial transaction implementation was inferred from other submissions.
 - At the start of this follow-up, the local Git repository was clean on
-  `master` at `d19af6a`. No commits were created. The repository is now modified
-  locally by the work recorded in [PROMPTS.md](../PROMPTS.md); nothing was
-  pushed.
+  `master` at `d19af6a`. The verified work recorded in [PROMPTS.md](../PROMPTS.md)
+  was later committed locally as `97ed04e` (`fix(auth): distinguish login,
+  throttling, and CSRF errors`). The existing local history was preserved;
+  nothing was pushed or deployed.
 - A read-only count against the configured database found one active admin.
   No real admin login was attempted, and no existing users, accounts,
   credentials, or database settings were changed.
