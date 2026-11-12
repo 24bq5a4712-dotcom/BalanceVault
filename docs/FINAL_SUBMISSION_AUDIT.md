@@ -215,3 +215,39 @@ completeness until those exact ten requirements are available for mapping.
   and deployment start were **not rerun as part of this audit**.
 - No source files or Git history were changed. No challenge requirement was
   invented or marked implemented without evidence.
+
+## Follow-up verification — 2026-11-12
+
+- The public [Snovasys event page](https://hackathon.snovasys.com/event/2)
+  states high-level expectations: server-enforced roles/permissions, data
+  operations, audit trail, error handling, tests, and a deployment a stranger
+  can run. It does not expose the participant-gated problem statement or its
+  functional acceptance criteria. Deposits, withdrawals, transfers, and
+  transaction history therefore remain **unverified challenge requirements**;
+  no financial transaction implementation was inferred from other submissions.
+- At the start of this follow-up, the local Git repository was clean on
+  `master` at `d19af6a`. No commits were created. The repository is now modified
+  locally by the work recorded in [PROMPTS.md](../PROMPTS.md); nothing was
+  pushed.
+- A read-only count against the configured database found one active admin.
+  No real admin login was attempted, and no existing users, accounts,
+  credentials, or database settings were changed.
+- The client previously mapped every HTTP 401 to an expired session and did
+  not give HTTP 429 a distinct message. Client handling now distinguishes login
+  credential errors (401), rate limits (429), and CSRF/origin rejection (403).
+  The original historical 403 request was not logged with its Origin or token,
+  so its exact cause remains unverified.
+- Backend in-memory tests: **5/5 passed**, including admin login/RBAC, owner
+  isolation, fresh/stale CSRF, session-ID rotation, holder denial of admin
+  routes, status validation, and self-demotion/suspension restrictions.
+  Client error-mapping tests: **3/3 passed**. Frontend production build passed.
+- Browser UI smoke check used intercepted API responses only: it confirmed
+  distinct 401/429/CSRF-403 messages and the mocked ADMIN dashboard rendering.
+  This is not a real authentication or live admin workflow test.
+- Local `GET /api/ready` returned HTTP 200 with PostgreSQL and Redis healthy.
+  The live integration suite was not run: it creates a test administrator and
+  other records in the configured database, which was not appropriate without
+  an explicitly disposable test database.
+- The challenge event page lists an editing deadline of 2026-11-10. This
+  follow-up is local work after that deadline; no public push or deployment was
+  performed.

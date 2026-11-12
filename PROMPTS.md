@@ -42,3 +42,21 @@
   using a freshly fetched CSRF token, rejection of a stale pre-login token,
   and rejection of a disallowed `Origin`. The tests use an in-memory holder
   account and do not create an administrator or change CSRF protections.
+- 2026-11-12 AI prompt: Diagnose the admin sign-in issue and distinguish login
+  failures (401), rate limits (429), and CSRF/origin rejections (403) without
+  resetting credentials, creating users, changing database settings, or
+  weakening security.
+- 2026-11-12 result: The client previously described every 401 as an expired
+  session, including invalid login credentials, and did not give 429 a
+  specific message. Updated client error classification and added built-in
+  Node tests. Backend login and role checks passed with in-memory test data;
+  no real admin login was attempted and no live user or account data changed.
+  Backend/client tests passed (5/5 and 3/3); the frontend build passed.
+- 2026-11-12 browser check: With API routes intercepted and synthetic responses,
+  the sign-in form displayed separate 401, 429, and CSRF 403 messages, and a
+  mocked ADMIN response rendered the admin dashboard. This did not authenticate
+  against the configured database or verify any real admin credentials.
+- 2026-11-12 requirements check: The public
+  [Snovasys event page](https://hackathon.snovasys.com/event/2) documents
+  high-level expectations but does not expose the gated problem statement.
+  No transaction requirement was inferred from it or from other submissions.

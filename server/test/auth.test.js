@@ -140,6 +140,30 @@ test("login requires a current CSRF token and an allowed origin", async () => {
   assert.equal(disallowedOriginResponse.body.error, "Request origin is not allowed.");
 });
 
+test("login regenerates the session identifier", async () => {
+  const { db } = makeAgent();
+  await register(makeAgent(db).agent, {
+    name: "Session Rotation Holder",
+    email: "session-rotation-holder@example.com",
+  });
+
+  const agent = makeAgent(db).agent;
+  const csrfResponse = await agent.get("/api/auth/csrf").expect(200);
+  const cookieValue = (headers) => headers
+    .find((cookie) => cookie.startsWith("balancevault.sid="))
+    .split(";", 1)[0];
+  const beforeLogin = cookieValue(csrfResponse.headers["set-cookie"]);
+
+  const loggedIn = await agent
+    .post("/api/auth/login")
+    .set("x-csrf-token", csrfResponse.body.csrfToken)
+    .send({ email: "session-rotation-holder@example.com", password: "Correct-Horse-42!" })
+    .expect(200);
+  const afterLogin = cookieValue(loggedIn.headers["set-cookie"]);
+
+  assert.notEqual(afterLogin, beforeLogin);
+});
+
 test("account access is authenticated, role-checked, owner-scoped, and audited", async () => {
   const db = new MemoryDatabase();
   const owner = makeAgent(db).agent;
@@ -223,6 +247,7 @@ test("admin bootstrap is one-time; onboarding, password change, RBAC, and audit 
   assert.equal(holderLogin.status, 200);
   assert.equal(holderLogin.body.user.mustChangePassword, true);
   await holder.get("/api/accounts").expect(403);
+  await holder.get("/api/admin/audit-logs").expect(403);
 
   const changed = await holder.get("/api/auth/csrf")
     .then(({ body }) => holder.post("/api/auth/password")
@@ -237,11 +262,29 @@ test("admin bootstrap is one-time; onboarding, password change, RBAC, and audit 
 
   await holder.get("/api/admin/users").expect(403);
   await admin.get("/api/accounts").expect(403);
+  const holderPrivilegeEscalation = await holder.get("/api/auth/csrf")
+    .then(({ body }) => holder.patch(`/api/admin/users/${created.body.user.id}`)
+      .set("x-csrf-token", body.csrfToken)
+      .send({ role: "ADMIN" }));
+  assert.equal(holderPrivilegeEscalation.status, 403);
+  assert.equal(db.users.find((user) => user.id === created.body.user.id).role, "HOLDER");
+
   const selfDemotion = await admin.get("/api/auth/csrf")
     .then(({ body }) => admin.patch(`/api/admin/users/${adminUser.id}`)
       .set("x-csrf-token", body.csrfToken)
       .send({ role: "HOLDER" }));
   assert.equal(selfDemotion.status, 400);
+  const selfSuspension = await admin.get("/api/auth/csrf")
+    .then(({ body }) => admin.patch(`/api/admin/users/${adminUser.id}`)
+      .set("x-csrf-token", body.csrfToken)
+      .send({ status: "SUSPENDED" }));
+  assert.equal(selfSuspension.status, 400);
+  const invalidStatus = await admin.get("/api/auth/csrf")
+    .then(({ body }) => admin.patch(`/api/admin/users/${created.body.user.id}`)
+      .set("x-csrf-token", body.csrfToken)
+      .send({ status: "UNKNOWN" }));
+  assert.equal(invalidStatus.status, 400);
+  assert.equal(db.users.find((user) => user.id === created.body.user.id).status, "ACTIVE");
   const suspended = await admin.get("/api/auth/csrf")
     .then(({ body }) => admin.patch(`/api/admin/users/${created.body.user.id}`)
       .set("x-csrf-token", body.csrfToken)

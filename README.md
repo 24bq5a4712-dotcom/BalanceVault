@@ -67,17 +67,22 @@ this scaffold does not send email or deliver invitations.
 - `npm run db:migrate` applies development migrations.
 - `npm run db:deploy` applies checked-in migrations in deployment environments.
 - `npm run db:generate` generates Prisma Client.
-- `npm test` runs HTTP-level tests for CSRF, registration/login, RBAC, account
-  ownership, admin onboarding, password changes, and audit events.
+- `npm test` runs backend HTTP tests for CSRF, registration/login, session
+  rotation, RBAC, account ownership, admin onboarding, password changes, and
+  audit events, plus client tests for login, rate-limit, and CSRF error messages.
 - `npm run test:integration` runs live API checks against the configured
-  PostgreSQL and Redis services. It creates uniquely named test records and
-  removes them during cleanup.
+  PostgreSQL and Redis services. It creates a run-scoped test administrator,
+  holders, and an account, then removes those test records during cleanup. Run
+  it only against a disposable or backed-up non-production database.
 - `npm run build` builds the Vite client.
 
-The regular API tests use an in-memory repository and session store. The
-separate integration test verifies real PostgreSQL, Redis sessions, and
-rate-limited API operations. `GET /api/ready` also checks both services at
-runtime.
+The regular backend tests use an in-memory repository and session store. The
+client tests cover API error-message mapping. The integration test exercises
+real PostgreSQL, Redis sessions, and API routes through the rate-limit
+middleware; it does not assert rate-limit thresholds or Redis-outage behavior.
+`GET /api/ready` also checks both services at runtime.
+Production hosting is not configured; see the deployment-readiness checklist
+in [docs/development.md](docs/development.md) before choosing a host.
 
 ## Structure
 

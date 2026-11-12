@@ -27,7 +27,7 @@ assessment.
 | --- | --- |
 | Password disclosure | Passwords are hashed with bcrypt; password hashes are omitted from API responses and audit metadata. |
 | Session theft/fixation | Server-side Redis sessions, session ID regeneration on login/registration, HTTP-only SameSite=Lax cookies, and Secure cookies in production. |
-| Cross-site request forgery | Random session CSRF tokens required for mutations; mismatched supplied Origin values are rejected. |
+| Cross-site request forgery | Random session CSRF tokens required for mutations; mismatched supplied Origin values are rejected. The client distinguishes CSRF/origin rejections from invalid credentials and rate limits. |
 | Unauthenticated or unauthorized access | Session authentication and server-side role checks protect account/admin APIs; users can only address their own accounts. |
 | Role escalation at registration | Self-registration always creates `HOLDER`; admin routes are separately guarded. |
 | Brute-force/API abuse | Redis-backed shared API limit plus a stricter auth-route limit; protected routes fail closed if Redis cannot enforce limits. |
@@ -47,6 +47,13 @@ assessment.
 - There is no email verification, self-service recovery, MFA, or session
   revocation management. Password reset forces a password change on subsequent
   protected operations but does not revoke every existing session.
+- The client reports login `401`, rate-limit `429`, and CSRF/origin `403`
+  responses separately. The previously observed admin-login `403` was not
+  captured with its request Origin or CSRF state, so its exact cause is
+  unverified. The CSRF middleware runs before the rate limiters; a 403 is not
+  evidence of throttling.
+- Redis-backed limiters are configured to fail closed, but automated tests do
+  not yet verify threshold enforcement or behavior during a Redis outage.
 - Account records are metadata only. Balances are initialized to zero and
   cannot be updated through the API. Financial transaction processing,
   reconciliation, and ledger invariants are not implemented.
