@@ -81,8 +81,9 @@ client tests cover API error-message mapping. The integration test exercises
 real PostgreSQL, Redis sessions, and API routes through the rate-limit
 middleware; it does not assert rate-limit thresholds or Redis-outage behavior.
 `GET /api/ready` also checks both services at runtime.
-Production hosting is not configured; see the deployment-readiness checklist
-in [docs/development.md](docs/development.md) before choosing a host.
+**Production deployment**
+
+The frontend is deployed on Render at https://balancevault-wqxw.onrender.com and the API is deployed at https://balancevault-api-07ty.onrender.com. The frontend routes API requests through its configured rewrite to the backend.
 
 ## Structure
 
