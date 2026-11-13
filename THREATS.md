@@ -58,8 +58,9 @@ assessment.
   cannot be updated through the API. Financial transaction processing,
   reconciliation, and ledger invariants are not implemented.
 - CSRF/session security depends on deploying HTTPS in production and keeping
-  the exact client origin and session secret private. No proxy trust policy is
-  configured.
+  the exact client origin and session secret private. Express trusts one
+  reverse-proxy hop in production for secure-cookie handling. This setting
+  must match the production hosting topology.
 - Readiness and schema validation are not proof of production availability.
   Configure PostgreSQL/Redis, apply migrations, and test backups, recovery,
   monitoring, and failure handling in the target environment.
